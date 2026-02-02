@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salud Materna IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
+        <div class="bg-indigo-600 p-6">
+            <h1 class="text-3xl font-bold text-white">🤰 Predicción de Riesgo Materno</h1>
+            <p class="text-indigo-200 mt-2">Modelo actual ID: <span id="model-id" class="font-mono bg-indigo-800 px-2 py-1 rounded">{{ current_run }}</span></p>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Datos de la Paciente</h2>
+                <form id="prediction-form" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Edad</label>
+                            <input type="number" name="Age" value="25" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Latidos (BPM)</label>
+                            <input type="number" name="HeartRate" value="70" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Sistólica (BP)</label>
+                            <input type="number" name="SystolicBP" value="120" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Diastólica (BP)</label>
+                            <input type="number" name="DiastolicBP" value="80" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Glucosa (BS)</label>
+                            <input type="number" step="0.1" name="BS" value="7.0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Temperatura (F)</label>
+                            <input type="number" step="0.1" name="BodyTemp" value="98.0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200">Predecir Riesgo</button>
+                </form>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">Resultado</h2>
+                    <div id="result-area" class="hidden">
+                        <div class="text-center py-6">
+                            <span id="risk-badge" class="px-4 py-2 rounded-full text-lg font-bold uppercase tracking-wide"></span>
+                            <p class="mt-4 text-gray-600">Confianza del modelo: <strong id="confidence-val"></strong>%</p>
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-gray-300">
+                            <p class="text-sm text-gray-500 mb-2">¿El diagnóstico fue incorrecto?</p>
+                            <label class="block text-sm font-medium text-gray-700">Entrenar con el valor real:</label>
+                            <div class="flex gap-2 mt-2">
+                                <select id="real-risk" class="block w-full rounded-md border-gray-300 shadow-sm border p-2">
+                                    <option value="low risk">Low Risk</option>
+                                    <option value="mid risk">Mid Risk</option>
+                                    <option value="high risk">High Risk</option>
+                                </select>
+                                <button onclick="sendRetrain()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Corregir</button>
+                            </div>
+                            <p id="retrain-msg" class="text-xs text-green-600 mt-2 hidden">¡Enviado! El modelo está aprendiendo...</p>
+                        </div>
+                    </div>
+                    <div id="loading" class="hidden text-center py-10 text-gray-500">
+                        Procesando...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lastData = {};
+
+        document.getElementById('prediction-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            lastData = Object.fromEntries(formData.entries());
+            
+            // UI Update
+            document.getElementById('result-area').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(lastData)
+                });
+                
+                const result = await response.json();
+                
+                // Mostrar resultados
+                const badge = document.getElementById('risk-badge');
+                badge.innerText = result.risk_level;
+                
+                // Colores según riesgo
+                badge.className = "px-4 py-2 rounded-full text-lg font-bold uppercase tracking-wide ";
+                if(result.risk_level.includes('high')) badge.classList.add('bg-red-100', 'text-red-800');
+                else if(result.risk_level.includes('mid')) badge.classList.add('bg-yellow-100', 'text-yellow-800');
+                else badge.classList.add('bg-green-100', 'text-green-800');
+
+                document.getElementById('confidence-val').innerText = result.confidence;
+                document.getElementById('model-id').innerText = result.run_id;
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('result-area').classList.remove('hidden');
+
+            } catch (err) {
+                alert("Error en predicción: " + err);
+            }
+        });
+
+        async function sendRetrain() {
+            const actualRisk = document.getElementById('real-risk').value;
+            const payload = { ...lastData, ActualRisk: actualRisk };
+
+            try {
+                const response = await fetch('/api/retrain', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                
+                if(response.ok) {
+                    document.getElementById('retrain-msg').classList.remove('hidden');
+                    setTimeout(() => document.getElementById('retrain-msg').classList.add('hidden'), 3000);
+                }
+            } catch (err) {
+                alert("Error enviando re-entrenamiento");
+            }
+        }
+    </script>
+</body>
+</html>
