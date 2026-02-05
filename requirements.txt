@@ -1,12 +1,13 @@
-mlflow
 pandas
 numpy
-matplotlib
-seaborn
 scikit-learn
 tensorflow
+joblib
+mlflow
 fastapi
 uvicorn
 python-multipart
 jinja2
 pydantic
+matplotlib
+seaborn

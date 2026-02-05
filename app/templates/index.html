@@ -104,16 +104,22 @@
                     body: JSON.stringify(lastData)
                 });
                 
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
                 const result = await response.json();
                 
-                // Mostrar resultados
+                // --- CORRECCIÓN AQUÍ: Usamos result.prediction ---
                 const badge = document.getElementById('risk-badge');
-                badge.innerText = result.risk_level;
+                badge.innerText = result.prediction; // Antes decía result.risk_level
                 
                 // Colores según riesgo
                 badge.className = "px-4 py-2 rounded-full text-lg font-bold uppercase tracking-wide ";
-                if(result.risk_level.includes('high')) badge.classList.add('bg-red-100', 'text-red-800');
-                else if(result.risk_level.includes('mid')) badge.classList.add('bg-yellow-100', 'text-yellow-800');
+                
+                // Validamos strings con .prediction
+                if(result.prediction.includes('high')) badge.classList.add('bg-red-100', 'text-red-800');
+                else if(result.prediction.includes('mid')) badge.classList.add('bg-yellow-100', 'text-yellow-800');
                 else badge.classList.add('bg-green-100', 'text-green-800');
 
                 document.getElementById('confidence-val').innerText = result.confidence;
@@ -123,7 +129,9 @@
                 document.getElementById('result-area').classList.remove('hidden');
 
             } catch (err) {
+                console.error(err);
                 alert("Error en predicción: " + err);
+                document.getElementById('loading').classList.add('hidden');
             }
         });
 
@@ -141,9 +149,11 @@
                 if(response.ok) {
                     document.getElementById('retrain-msg').classList.remove('hidden');
                     setTimeout(() => document.getElementById('retrain-msg').classList.add('hidden'), 3000);
+                } else {
+                    alert("Error en el servidor al re-entrenar");
                 }
             } catch (err) {
-                alert("Error enviando re-entrenamiento");
+                alert("Error enviando re-entrenamiento: " + err);
             }
         }
     </script>

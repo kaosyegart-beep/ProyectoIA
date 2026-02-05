@@ -1,87 +1,90 @@
-# 🤰 Predicción de Riesgo de Salud Materna con IA y Aprendizaje Continuo
+# Maternal Health Risk Prediction with AI and Continuous Learning
 
-Este proyecto es una solución integral de MLOps diseñada para predecir el nivel de riesgo de salud materna (Bajo, Medio, Alto) basándose en signos vitales y datos fisiológicos. Implementa un ciclo de vida completo de Machine Learning, desde el análisis exploratorio hasta el despliegue de una API con capacidades de re-entrenamiento en tiempo real (Continuous Learning).
+This project is a comprehensive MLOps solution designed to predict maternal health risk levels (Low, Medium, High) based on vital signs and physiological data. It implements a complete Machine Learning lifecycle, from exploratory analysis to deploying an API with real-time retraining capabilities (Continuous Learning).
 
-## 🛠️ Tecnologías Utilizadas
+## Technologies Used
 
-El proyecto está construido utilizando un stack moderno de Python para Data Science y Desarrollo Web:
+The project is built using a modern Python stack for Data Science and Web Development:
 
-* **Lenguaje:** Python 3.10+
+* **Language:** Python 3.10+
 * **Machine Learning & Deep Learning:**
-    * `TensorFlow` / `Keras` (Redes Neuronales)
-    * `Scikit-Learn` (Preprocesamiento y métricas)
-    * `Pandas` & `NumPy` (Manipulación de datos)
+    * `TensorFlow` / `Keras` (Neural Networks)
+    * `Scikit-Learn` (Preprocessing and metrics)
+    * `Pandas` & `NumPy` (Data manipulation)
 * **MLOps & Tracking:**
-    * `MLflow` (Registro de experimentos, versionado de modelos y gestión de artefactos)
+    * `MLflow` (Experiment tracking, model versioning and artifact management)
 * **Backend & API:**
-    * `FastAPI` (Servidor web de alto rendimiento)
-    * `Uvicorn` (Servidor ASGI)
-    * `Pydantic` (Validación de datos)
+    * `FastAPI` (High-performance web server)
+    * `Uvicorn` (ASGI server)
+    * `Pydantic` (Data validation)
 * **Frontend:**
     * `HTML5` + `Jinja2` (Templates)
-    * `TailwindCSS` (Estilizado moderno vía CDN)
-* **Herramientas:**
-    * `Joblib` (Serialización)
-    * `Matplotlib` & `Seaborn` (Visualización de datos en Notebooks)
+    * `TailwindCSS` (Modern styling via CDN)
+* **Tools:**
+    * `Joblib` (Serialization)
+    * `Matplotlib` & `Seaborn` (Data visualization in Notebooks)
 
-## 📂 Estructura del Proyecto
+## Project Structure
 
+```
 Proyecto/
-│
-├── app/                        # Código fuente de la aplicación
-│   ├── templates/              # Interfaz de usuario (HTML)
+|
+├── app/                        # Application source code
+│   ├── templates/              # User interface (HTML)
 │   │   └── index.html
 │   ├── __init__.py
-│   ├── config.py               # Configuraciones y rutas
-│   ├── main.py                 # Endpoints de la API (FastAPI)
-│   ├── ml_service.py           # Lógica de carga de modelos y re-entrenamiento
-│   └── schemas.py              # Modelos de datos (Pydantic)
+│   ├── config.py               # Configuration and paths
+│   ├── main.py                 # API endpoints (FastAPI)
+│   ├── ml_service.py           # Model loading and retraining logic
+│   └── schemas.py              # Data models (Pydantic)
 │
 ├── data/                       # Datasets
-│   ├── Maternal Health Risk Data Set.csv  # Datos crudos
-│   └── maternal_risk_processed.csv        # Datos procesados
+│   ├── Maternal Health Risk Data Set.csv  # Raw data
+│   └── maternal_risk_processed.csv        # Processed data
 │
-├── Notebooks/                  # Cuadernos de Jupyter
-│   ├── 01_EDA.ipynb            # Análisis Exploratorio de Datos
-│   ├── 02_Training_Base.ipynb  # Entrenamiento del modelo base y registro en MLflow
-│   └── 03_Inference_Testing.ipynb # Pruebas de inferencia y simulación de feedback
+├── Notebooks/                  # Jupyter Notebooks
+│   ├── 01_EDA.ipynb            # Exploratory Data Analysis
+│   ├── 02_Training_Base.ipynb  # Base model training and MLflow registration
+│   └── 03_Inference_Testing.ipynb # Inference tests and feedback simulation
 │
-├── mlflow.db                   # Base de datos SQLite de MLflow (se genera automáticamente)
-├── mlruns/                     # Artefactos de MLflow (modelos, scalers)
-├── iniciar.bat                 # Script de arranque automático para Windows
-├── run.py                      # Orquestador de servicios (API + MLflow)
-├── requirements.txt            # Dependencias del proyecto
-└── README.md                   # Documentación
+├── mlflow.db                   # MLflow SQLite database (auto-generated)
+├── mlruns/                     # MLflow artifacts (models, scalers)
+├── iniciar.bat                 # Automated startup script for Windows
+├── run.py                      # Service orchestrator (API + MLflow)
+├── requirements.txt            # Project dependencies
+└── README.md                   # Documentation
+```
 
-## 📝 Resumen del Proyecto y Funcionamiento
+## Project Summary and Functionality
 
-El objetivo principal es asistir en el diagnóstico temprano de riesgos durante el embarazo mediante inteligencia artificial.
+The main objective is to assist in early diagnosis of pregnancy-related risks through artificial intelligence.
 
-### 🧠 El Modelo
-El núcleo del sistema es una **Red Neuronal Artificial (ANN)** construida con TensorFlow/Keras.
-* **Arquitectura:** Modelo secuencial con capas densas (`Dense`), activación `ReLU` y capas de regularización (`Dropout`) para evitar sobreajuste.
-* **Salida:** Capa `Softmax` que clasifica en 3 categorías: *Low Risk, Mid Risk, High Risk*.
+### The Model
+The core of the system is an **Artificial Neural Network (ANN)** built with TensorFlow/Keras.
+* **Architecture:** Sequential model with dense layers (`Dense`), `ReLU` activation and regularization layers (`Dropout`) to prevent overfitting.
+* **Output:** `Softmax` layer that classifies into 3 categories: *Low Risk, Mid Risk, High Risk*.
 
-### ⚙️ Flujo de Trabajo (Workflow)
+### Workflow
 
-1.  **Entrenamiento Base:** A través de los Notebooks, se procesan los datos y se entrena el modelo inicial. Este modelo, junto con su escalador (`StandardScaler`) y su firma de entrada/salida, se registra automáticamente en **MLflow**.
-2.  **Inferencia (API):** Al iniciar la aplicación, el servicio busca automáticamente la versión más reciente y exitosa del modelo en MLflow y la carga en memoria.
-3.  **Aprendizaje Continuo (Feedback Loop):**
-    * El sistema permite al usuario (médico/especialista) corregir una predicción errónea desde la interfaz web.
-    * **Fine-Tuning:** Al recibir una corrección, el sistema ejecuta un proceso de *Transfer Learning*. Congela las capas superficiales del modelo para retener el conocimiento previo y re-entrena las capas profundas con el nuevo dato usando una tasa de aprendizaje agresiva.
-    * **Versionado:** El modelo ajustado se guarda inmediatamente como una nueva versión en MLflow y la API se actualiza en tiempo real sin necesidad de reiniciarse.
+1. **Base Training:** Through the Notebooks, data is processed and the initial model is trained. This model, along with its scaler (`StandardScaler`) and input/output signature, is automatically registered in **MLflow Model Registry** with a timestamp-based version name (e.g., `model_v0402262258`).
 
-## 🚀 Cómo Iniciar
+2. **Inference (API):** When the application starts, the service automatically searches for the latest registered model version in MLflow and loads it into memory using `mlflow.load_model()`.
 
-El proyecto incluye un script automatizado para Windows que gestiona la creación del entorno virtual, la instalación de dependencias y el inicio de los servidores.
+3. **Continuous Learning (Feedback Loop):**
+    * The system allows the user (doctor/specialist) to correct an incorrect prediction from the web interface.
+    * **Fine-Tuning:** Upon receiving a correction, the system executes a *Transfer Learning* process. It freezes the base layers of the model to retain previous knowledge and retrains the deep layers with the new data using an aggressive learning rate.
+    * **Versioning:** The adjusted model is immediately saved as a new version in MLflow with the format `model_v{ddmmyyHHMM}` and the API updates in real-time without needing to restart.
 
-1.  Asegúrate de tener Python instalado.
-2.  Haz doble clic en el archivo **`iniciar.bat`**.
-3.  El sistema abrirá automáticamente:
-    * La interfaz web de predicción.
-    * (Opcional) Puedes acceder a la UI de MLflow en el puerto 5000 para ver el historial de entrenamientos.
+## How to Start
 
-## 👥 Autores
+The project includes an automated script for Windows that manages virtual environment creation, dependency installation, and server startup.
 
-* **[Tu Nombre Aquí]** - *Desarrollo Inicial y MLOps*
-* **[Nombre Colaborador]** - *Análisis de Datos*
+1. Make sure Python is installed.
+2. Double-click the **`iniciar.bat`** file.
+3. The system will automatically open:
+    * The prediction web interface.
+    * (Optional) Access the MLflow UI on port 5000 to view training history.
+
+## Author
+
+* **Richard Borja** - Kaosyegart@gmail.com

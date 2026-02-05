@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.so
+/data/
+/mlruns/
+scaler.pkl
+*.pkl
+venv/
+env/
+.env
+.ipynb_checkpoints/
+*.log
+*.sqlite
+mlflow.db
+.vscode/
+.idea/

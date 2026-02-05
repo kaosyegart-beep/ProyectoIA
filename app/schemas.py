@@ -9,9 +9,9 @@ class PatientData(BaseModel):
     HeartRate: int = Field(..., ge=40, le=150, description="Ritmo Cardiaco (bpm)")
 
 class PredictionResponse(BaseModel):
-    risk_level: str
+    prediction: str
     confidence: float
-    run_id: str
+    run_id: str | None = None
 
 class RetrainRequest(PatientData):
     ActualRisk: str = Field(..., description="Nivel real: 'low risk', 'mid risk', 'high risk'")
